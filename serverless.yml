@@ -1,182 +1,50 @@
-service: retoRimac
-
-frameworkVersion: '2'
+service:
+  name: rimac-service
 
 plugins:
-  - serverless-openapi-documentation
+  - serverless-bundle
+  - serverless-pseudo-parameters
 
 provider:
   name: aws
   runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
   region: us-east-1
-  environment: 
-    REGION: ${self:provider.region}
-    PEOPLE_RIMAC_TABLE: PeopleRimacTable
-
+  environment:
+    PEOPLE_TABLE_NAME: ${self:custom.PeopleTable.name}
   iamRoleStatements:
-   - Effect: "Allow"
-     Action:
-        - dynamodb:DescribeTable
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-     Resource:
-        - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.PEOPLE_RIMAC_TABLE}"
-
-
-functions:
-  createPerson:
-    handler: handler.createPerson
-    events: 
-      - http:
-          method: post
-          path: people
-          documentation:
-            summary: Create Person
-            description: Creates a person
-            requestBody:
-              description: A person information object
-              content:
-                application/json: PostPersonRequest
-            requestModels:
-              application/json: PostPersonRequest
-            methodResponses:
-              - statusCode: 201
-                responseBody:
-                  description: A person object along with generated UUID
-                responseModels:
-                  application/json: PostPersonResponse
-              - statusCode: 500
-                responseBody:
-                  description: An error message when creating a new person
-                responseModels:
-                  application/json: ErrorResponse
-  getAllPeople:
-    handler: handler.getAllPeople
-    events: 
-      - http:
-          method: get
-          path: people
-          documentation:
-            summary: Get All People
-            description: List all people from Database
-            methodResponses:
-              - statusCode: 200
-                responseBody:
-                  description: List people
-                responseModels:
-                  application/json: PersonResponse
-              - statusCode: 500
-                responseBody:
-                  description: An error message when creating a new person
-                responseModels:
-                  application/json: ErrorResponse
-  getPerson:
-    handler: handler.getPerson
-    events:
-    - http:
-        method: get
-        path: people/{id}
-        documentation:
-          summary: Get Person
-          description: Get person from Database
-          pathParams:
-            - name: username
-              description: The username for a user to create
-              schema:
-                type: string
-                pattern: "^[-a-z0-9_]+$"
-          parameters:
-            - name: id
-              description: The personId for search
-              schema:
-                type: string
-          methodResponses:
-            - statusCode: 200
-              responseBody:
-                description: Person Model
-              responseModels:
-                application/json: PersonResponse
-            - statusCode: 500
-              responseBody:
-                description: An error message when creating a new person
-              responseModels:
-                application/json: ErrorResponse
+    - ${file(iam/PeopleTableIAM.yml):PeopleTableIAM}
 
 resources:
   Resources:
-    PeopleRimacTable:
-      Type: "AWS::DynamoDB::Table"
-      Properties:
-        AttributeDefinitions:
-        - AttributeName: "personId"
-          AttributeType: "S"
-        KeySchema:
-        - AttributeName: "personId"
-          KeyType: "HASH"
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-        TableName: ${self:provider.environment.PEOPLE_RIMAC_TABLE}
+    PeopleTable: ${file(resources/PeopleTable.yml):PeopleTable}
+  
+functions:
+  createPerson:
+    handler: src/handlers/createPerson.handler
+    events:
+      - http:
+          method: POST
+          path: /person
+  
+  getPersons:
+    handler: src/handlers/getPersons.handler
+    events:
+      - http:
+          method: GET
+          path: /persons
+
+  getPerson:
+    handler: src/handlers/getPerson.handler
+    events:
+      - http:
+          method: GET
+          path: /person/{id}
 
 custom:
-  documentation:
-    version: '1'
-    title: 'API People for RIMAC Challenge'
-    description: 'This is my API for the RIMAC backend developer challenge'
-    license:
-      name: "Apache 2.0"
-      url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-    models:
-      - name: ErrorResponse
-        description: This is an error
-        contentType: application/json
-        schema: ${file(swagger/ErrorResponse.json)}
-
-      - name: PostPersonResponse
-        description: POST Person response model (external reference example)
-        contentType: application/json
-        schema: ${file(swagger/PostPersonResponse.json)}
-
-      - name: PostPersonRequest
-        description: POST Person request model
-        contentType: application/json
-        schema: 
-          $schema: "http://json-schema.org/draft-04/schema#"
-          properties:
-            Person:
-              type: "object"
-              properties:
-                name:
-                  type: "string"
-                planetId:
-                  type: "integer"
-                specieId:
-                  type: "integer"
-      
-      # - name: GetPersonResponse
-      #   description: GET All Person response model
-      #   contentType: application/json
-      #   schema: 
-      #     $schema: "http://json-schema.org/draft-04/schema#"
-      #     type: array
-      #     items: PersonResponse
-          
-
-      - name: PersonResponse
-        description: GET Person response model
-        contentType: application/json
-        schema:
-          properties:
-            name:
-              type: "string"
-            planetId:
-              type: "integer"
-            specieId:
-              type: "integer"
-            personId:
-              type: "string"
-            createdAt:
-              type: "string"  
+  PeopleTable:
+    name: !Ref PeopleTable
+    arn: !GetAtt PeopleTable.Arn
+  bundle:
+    linting: false
