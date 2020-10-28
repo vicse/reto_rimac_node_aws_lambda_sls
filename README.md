@@ -1,14 +1,26 @@
 # Rimac Challange Service
 
-## What's included
-* Folder structure used consistently across our projects.
-* [serverless-pseudo-parameters plugin](https://www.npmjs.com/package/serverless-pseudo-parameters): Allows you to take advantage of CloudFormation Pseudo Parameters.
-* [serverless-bundle plugin](https://www.npmjs.com/package/serverless-pseudo-parameters): Bundler based on the serverless-webpack plugin - requires zero configuration and fully compatible with ES6/ES7 features.
+## Operaciones
 
-## Getting started
+| Operation | Type | URI |
+| --------- | ---- | --- |
+| Obtiene una persona  disponibles.| GET  | https://atew3wfjgb.execute-api.us-east-1.amazonaws.com/dev/person/:id |
+| Registra una persona en DynamoDB. | POST  | https://atew3wfjgb.execute-api.us-east-1.amazonaws.com/dev/person |
+| Obtiene la lista de personas disponibles. | GET  | https://atew3wfjgb.execute-api.us-east-1.amazonaws.com/dev/persons |
+
+## Api's Consumidas
+
+* SWAPI - The Star Wars API: https://swapi.py4e.com/documentation
+
+## Plugins Serverless usados
+* [serverless-pseudo-parameters plugin](https://www.npmjs.com/package/serverless-pseudo-parameters): 
+Le permite aprovechar los pseudoparámetros de CloudFormation.
+* [serverless-bundle plugin](https://www.npmjs.com/package/serverless-pseudo-parameters): Bundler basado en el complemento serverless-webpack: no requiere configuración y es totalmente compatible con las funciones de ES6 / ES7.
+
+## Iniciando
+Realizar el siguiente comando para instalar las dependencias
 
 ```
 npm install
 ```
 
-You are ready to go!
