@@ -1,6 +1,6 @@
 import AWS from 'aws-sdk';
 import createError from 'http-errors';
-import axios from 'axios';
+import { getSpecie } from './getSpecie';
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
@@ -21,15 +21,7 @@ async function getPerson(event, context) {
       throw new createError.NotFound(`Person with id "${id}" not found!`)  
     }
 
-    axios.get(`https://swapi.py4e.com/api/species/${person.specieId}`)
-      .then(response => {
-          console.log(response.data);
-          console.log(response.data.explanation);
-          person.specie = response.data;
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    person.specie = await getSpecie(person.specieId);
 
   } catch (error) {
     console.error(error);
