@@ -1,23 +1,15 @@
-import AWS from 'aws-sdk';
-import createError from 'http-errors';
+import { DynamoDB } from "../db/dynamodb";
 
-const dynamodb = new AWS.DynamoDB.DocumentClient();
+import createError from "http-errors";
 
 async function getPersons(event, context) {
 
-    let persons;
-
-    try {
-        const result = await dynamodb.scan({ 
-            TableName: process.env.PEOPLE_TABLE_NAME 
-        }).promise();
-
-        persons = result.Items;
-
-    } catch (error) {
-        console.error(error);
-        throw new createError.InternalServerError(error);
-    }
+  let persons = await DynamoDB
+    .scan(process.env.PEOPLE_TABLE_NAME)
+    .catch((err) => {
+      console.log("error in Dynamo scan", err);
+      throw new createError.InternalServerError(err);
+    });
 
   return {
     statusCode: 200,
@@ -26,5 +18,3 @@ async function getPersons(event, context) {
 }
 
 export const handler = getPersons;
-
-
