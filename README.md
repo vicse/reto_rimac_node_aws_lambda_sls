@@ -23,4 +23,11 @@ Realizar el siguiente comando para instalar las dependencias
 ```
 npm install
 ```
-
+## Despliegue
+```
+serverless deploy
+```
+## Covertura de Código
+```
+npm run test:coverage-all
+```
